@@ -1,5 +1,5 @@
 package WWW::Chat;
-
+$VERSION = '0.62';
 use strict;
 require Exporter;
 *import = \&Exporter::import;

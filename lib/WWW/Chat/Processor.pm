@@ -1,5 +1,5 @@
 package WWW::Chat::Processor;
-
+$VERSION = '0.62';
 use strict;
 use Config qw(%Config);
 
