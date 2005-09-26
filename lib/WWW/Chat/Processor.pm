@@ -121,7 +121,7 @@ EOT
     		} elsif (/^(\s*)F\s+([\w.:\-*\#]+)\s*=\s*(.*)/) {
 			my $indent = $1;
 			my $name   = $2;
-			my $val    = dump("$3");
+			my $val    = dump ("$3");
 
 			my $no = 1;
 			$no = $1 if $name =~ s/:(\d+)$//;

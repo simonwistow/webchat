@@ -1,3 +1,10 @@
+2001-12-11   Simon Wistow <simon@thegestalt.org>
+
+  Release 0.64 
+
+  Documentation patch that tells you how to do
+  basic HTTP authentication.
+
 2001-11-06   Simon Wistow <simon@thegestalt.org>
 
   Release 0.63
