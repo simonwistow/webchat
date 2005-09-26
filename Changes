@@ -1,3 +1,25 @@
+2001-10-05   Simon Wistow <simon@thegestalt.org>
+
+   Release 0.6
+
+   Upped the version number to sort some issues out.
+   Don't ask.
+
+
+2001-08-10   Simon Wistow <simon@thegestalt.org>
+   
+   Release ???
+   
+   Patched WWW::Chat to require params to passed to make 
+   it package safe although it will default to searching 
+   the main:: namespace. Wrote WWW::Chat::Processor to 
+   perform the job of webchatpp in a more portable way
+   and rewrote webchatpp.PL (which generates webchatpp)
+   to take this into account. Wrote some automatic tests
+   and some ones to be run manually.
+
+
+
 1999-11-16   Gisle Aas <gisle@aas.no>
 
    Release 0.05

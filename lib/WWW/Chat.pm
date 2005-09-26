@@ -10,13 +10,15 @@ use Carp ();
 
 sub fail
 {
-    my $reason = shift;
+    my ($reason, $mres, $mct) = @_;
+    $mres ||= $main::res;
+    $mct  ||= $main::ct;
     Carp::carp("FAILED $reason");
-
+    
     # Print current response too...
-    my $res = $main::res->clone;
+    my $res = $mres->clone;
     my $cref = $res->content_ref;
-    if ($main::ct =~ m,^text/,) {
+    if ($mct =~ m,^text/,) {
 	substr($$cref, 256) = "..." if length($$cref) > 512;
     } else {
 	$$cref = "";
@@ -38,23 +40,29 @@ sub check_eval
 
 sub OK
 {
-    $main::status == 200;
+    my $mstatus = shift;
+    $mstatus ||= $main::status;
+    $mstatus == 200;
 }
 
 sub ERROR
 {
-    $main::status >= 400 && $main::status < 600;
+    my $mstatus = shift;
+    $mstatus ||= $main::status;
+    $mstatus >= 400 && $mstatus < 600;
 }
 
 sub request
 {
-    my $req = shift;
+    my ($req, $mua, $MTRACE) = @_;
+    $mua    ||= $main::ua;
+    $MTRACE ||= $main::TRACE;
     print STDERR ">> " . $req->method . " " . $req->uri . " ==> "
-	if $main::TRACE;
-    #print STDERR "\nCC " . $req->content . "\n" if $main::TRACE;
-    my $res = $main::ua->request($req);
+	if $MTRACE;
+    #print STDERR "\nCC " . $req->content . "\n" if $MTRACE;
+    my $res = $mua->request($req);
     print STDERR $res->status_line . "\n"
-	if $main::TRACE;
+	if $MTRACE;
     $res;
 }
 
@@ -93,3 +101,54 @@ sub locate_link
 }
 
 1;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+WWW::Chat - support module for web chat script.
+
+=head1 SYNOPSIS
+
+  
+  # none ... 
+  # this module is not intended to be used 
+  # except by processed webchat scripts.
+  
+
+=head1 DESCRIPTION
+
+The C<webchatpp> program is a preprocessor that turns chat scripts
+into plain perl scripts.  When this script is fed to perl it will 
+perform the chatting.  The I<webchat language> consist of perl code
+with some lines interpreted and expanded by B<WWW::Chat::Processor>.  
+
+The interpreted scripts call functions in this module.
+
+See L<webchatpp> for more details.
+
+=head1 ENVIRONMENT
+
+The initial value of the $TRACE variable is initialized from the
+WEBCHAT_TRACE environment variable.
+
+Proxy settings are picked up from the environment too. See
+L<LWP::UserAgent/env_proxy>.
+
+
+=head1 SEE ALSO
+
+L<webchatpp>, L<WWW::Chat::Processor>, L<LWP>, L<HTML::Form>
+
+=head1 COPYRIGHT
+
+Copyright 1998 Gisle Aas.
+
+Modified 2001 Simon Wistow <simon@thegestalt.org>.
+
+This script is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+
+=cut

@@ -16,8 +16,10 @@ $Config{'startperl'} -w
 
 print OUT <<'!NO!SUBS!';
 
+use lib 'lib';
 use strict;
 use Config qw(%Config);
+use WWW::Chat::Processor;
 
 my $progname = $0;
 $progname =~ s,.*/,,; # loose path
@@ -33,185 +35,21 @@ if (!@ARGV) {
     usage();
 }
 
+undef $/;
+my $script = <F>;
+
 print "$Config{'startperl'} -w\n";
 
-print "# !!! DO NOT EDIT !!!\n";
-print "# This program was automatically generated from '$file' by $progname\n";
-
-print <<'EOT';
-
-use strict;
-
-use URI ();
-use HTTP::Request ();
-use LWP::UserAgent ();
-#use LWP::Debug qw(+);
-
-use HTML::Form ();
-use WWW::Chat qw(fail OK ERROR);
-
-use vars qw($ua $uri $base $req $res $status $ct @forms $form @links $TRACE);
-
-$base ||= "http://localhost";
-unless ($ua) {
-    $ua  = LWP::UserAgent->new;
-    $ua->agent("webchat/0.01 " . $ua->agent);
-    $ua->env_proxy;
-}
-
-$TRACE = $ENV{WEBCHAT_TRACE};
-
-EOT
-
-print "#line 1 \"$file\"\n";
-
-use Data::Dump qw(dump);
-
-my $seen_end;
-my $level = 0;
-
-while (<F>) {
-    if ($seen_end) {
-	print;
-	next;
-    }
-
-    if (/^(\s*)GET\s+(\S+)\s*$/) {
-	my $indent = $1;
-	my $uri = $2;
-	$uri = dump($uri) unless $uri =~ /^\$/;
-	print "$indent#GET $uri\n";
-	print "${indent}eval {\n";
-	$level++;
-        print "$indent    local \$uri = URI->new_abs($uri, \$base);\n";
-	print "$indent    local \$req = HTTP::Request->new(GET => \$uri);\n";
-	request("$indent    ");
-	line();
-
-    } elsif (/^(\s*)FOLLOW\s(.*)/) {
-	my $indent = $1;
-	my $what = $2;
-	$what =~ s/\s+$//;
-	print "${indent}# FOLLOW $what\n";
-	print "${indent}eval {\n";
-	$level++;
-	if ($what =~ m,^/,) {
-	    print "$indent    local \$uri;\n";
-	    print "$indent    for (\@links) { \$uri = \$_->[0], last if \$_->[1] =~ $what }\n";
-	    my $text = dump("FOLLOW $what");
-	    print "$indent    fail($text) unless defined \$uri;\n";
-	    print "$indent    \$uri = URI->new_abs(\$uri, \$base);\n";
-	} else {
-	    $what = dump($what);
-	    print "$indent    local \$uri = WWW::Chat::locate_link($what, \\\@links, \$base);\n";
-	}
-	print "$indent    local \$req = HTTP::Request->new(GET => \$uri);\n";
-	request("$indent    ");
-	line();
-
-    } elsif (/^(\s*)FORM:?(\d+)?(?:\s+(\S+))?\s*$/) {
-	my $indent = $1;
-	my $form_no = $2 || 1;
-        my $uri = $3;
-	$uri = dump($uri) if !defined($uri) || $uri !~ /^\$/;
-	print $indent, "\$form = WWW::Chat::findform(\\\@forms, $form_no, $uri);\n";
-
-    } elsif (/^(\s*)EXPECT\s+(.*)$/) {
-	my $indent = $1;
-	my $what = $2;
-	$what =~ s/;$//;
-	#print "$indent#EXPECT $what\n";
-	my $text = dump($what);
-	print $indent, "fail($text) unless $what;\n";
-
-    } elsif (/^(\s*)BACK(?:\s+(ALL|\d+))?\s*$/) {
-	my $indent = $1;
-	my $done = $2 || "1";
-	done($indent, $done);
-	
-    } elsif (/^(\s*)F\s+([\w.:\-*\#]+)\s*=\s*(.*)/) {
-	my $indent = $1;
-	my $name   = $2;
-	my $val    = dump("$3");
-
-	my $no = 1;
-	$no = $1 if $name =~ s/:(\d+)$//;
-	$name = dump($name);
-
-	if ($no == 1) {
-	    print "$indent\$form->value($name => $val);\n";
-	} else {
-	    print "$indent\$form->find_input($name, $no)->value($val);\n";
-	}
-
-    } elsif (/^(\s*)(?:CLICK|SUMBIT)(?:\s+(\w+))?(?:(\d+)\s+(\d+))?/) {
-	my $indent = $1;
-	my $name = $2;
-	$name = dump($name);
-	my $x = $3;
-	my $y = $4;
-	for ($x, $y) { $_ = 1 unless defined; }
-	print "$indent#CLICK $name $x $y\n";
-	print $indent, "eval {\n";
-	$level++;
-	print $indent, "    local \$uri = \$form->uri;\n";
-	print $indent, "    local \$req = \$form->click($name, $x, $y);\n";
-	request("$indent    ");
-	line();
-
-    } elsif (/^__END__$/) {
-	done("", "ALL") if $level;
-	print;
-	$seen_end++;
-
-    } else {
-	print;
-    }
-}
-done("", "ALL") if $level;
-exit;
-
+print WWW::Chat::Processor::parse($script, $file);
 
 sub usage
 {
     die "Usage: $progname [<file>]\n";
 }
 
-sub done
-{
-    my($indent, $done) = @_;
-    $done = $level if $done eq "ALL" || $done > $level;
-    $level -= $done;
-    for (1 .. $done) {
-	print $indent, "}; WWW::Chat::check_eval(\$@);\n";
-    }
-    line() if $done > 1;
-}
-
-sub request
-{
-    my $indent = shift;
-    print $indent, "local \$res = WWW::Chat::request(\$req);\n";
-    print $indent, "#print STDERR \$res->as_string;\n";
-    print $indent, "local \$status = \$res->code;\n";
-    print $indent, "local \$base = \$res->base;\n";
-    print $indent, "local \$ct = \$res->content_type || \"\";\n";
-    print $indent, "local \$_ = \$res->content;\n";
-    print $indent, "local(\@forms, \$form, \@links);\n";
-    print $indent, "if (\$ct eq 'text/html') {\n";
-    print $indent, "    \@forms = HTML::Form->parse(\$_, \$res->base);\n";
-    print $indent, "    \$form = \$forms[0] if \@forms;\n";
-    print $indent, "    \@links = WWW::Chat::extract_links(\$_);\n";
-    print $indent, "}\n";
-}
-
-sub line
-{
-    my $line = $. + 1;
-    print qq(#line $line "$file"\n);
-}
 
 __END__
+=pod 
 
 =head1 NAME
 
@@ -224,7 +62,7 @@ webchatpp - Preprocessor for Web Chat scripts
 =head1 DESCRIPTION
 
 The C<webchatpp> program is a preprocessor that turns chat scripts
-into plain perl scripts.  When this script is feed to perl it will
+into plain perl scripts.  When this script is fed to perl it will
 perform the chatting.  The I<webchat language> consist of perl code
 with some lines interpreted and expanded by I<webchatpp>.  The
 following statements are recognized:
@@ -343,11 +181,13 @@ And here is another one
 
 =head1 SEE ALSO
 
-L<LWP>, L<HTML::Form>
+L<LWP>, L<HTML::Form>, L<WWW::Chat>, L<WWW::Chat::Processor>
 
 =head1 COPYRIGHT
 
 Copyright 1998 Gisle Aas.
+
+Modified 2001 Simon Wistow <simon@thegestalt.org>.
 
 This script is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
