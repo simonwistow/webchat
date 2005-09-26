@@ -87,7 +87,7 @@ EOT
 			    $output .=  "$indent    local \$uri;\n";
 			    $output .=  "$indent    for (\@links) { \$uri = \$_->[0], last if \$_->[1] =~ $what }\n";
 			    my $text = dump("FOLLOW $what");
-			    $output .=  "$indent    fail($text, \$res, \$ct) unless defined \$uri;\n";
+			    $output .=  "$indent    WWW::Chat::fail($text, \$res, \$ct) unless defined \$uri;\n";
 			    $output .=  "$indent    \$uri = URI->new_abs(\$uri, \$base);\n";
 			} else {
 			    $what = dump($what);
