@@ -1,3 +1,10 @@
+2001-10-16   Simon Wistiw <simon@thegestalt.org>
+
+   Release 0.61
+
+  Fixed it so it wouldn't interfere with Test::More 
+  anymore thanks to a heads up from Skud.
+
 2001-10-05   Simon Wistow <simon@thegestalt.org>
 
    Release 0.6

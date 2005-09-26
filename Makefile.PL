@@ -2,7 +2,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
    NAME      => "webchat",
-   VERSION   => "0.6",
+   VERSION   => "0.61",
    PREREQ_PM => {
                   'HTML::Parser' => '2.21',
 		  'Data::Dump'   => '0.01',

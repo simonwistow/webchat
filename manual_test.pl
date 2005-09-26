@@ -79,7 +79,7 @@ use LWP::UserAgent ();
 #use LWP::Debug qw(+);
 
 use HTML::Form ();
-use WWW::Chat qw(fail OK ERROR);
+use WWW::Chat;
 
 use vars qw($ua $uri $base $req $res $status $ct @forms $form @links $TRACE);
 

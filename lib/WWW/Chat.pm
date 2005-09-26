@@ -3,8 +3,8 @@ package WWW::Chat;
 use strict;
 require Exporter;
 *import = \&Exporter::import;
-use vars qw(@EXPORT_OK);
-@EXPORT_OK=qw(fail OK ERROR);
+#use vars qw(@EXPORT_OK);
+#@EXPORT_OK=qw(fail OK ERROR);
 
 use Carp ();
 

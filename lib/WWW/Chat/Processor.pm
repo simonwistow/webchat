@@ -33,14 +33,14 @@ use LWP::UserAgent ();
 #use LWP::Debug qw(+);
 
 use HTML::Form ();
-use WWW::Chat qw(fail OK ERROR);
+use WWW::Chat;
 
 use vars qw($ua $uri $base $req $res $status $ct @forms $form @links $TRACE);
 
 $base ||= "http://localhost";
 unless ($ua) {
     $ua  = LWP::UserAgent->new;
-    $ua->agent("webchat/0.01 " . $ua->agent);
+    $ua->agent("webchat/0.61 " . $ua->agent);
     $ua->env_proxy;
 }
 
@@ -110,8 +110,8 @@ EOT
 			$what =~ s/;$//;
 			# $output .=  "$indent#EXPECT $what\n";
 			my $text = dump($what);
-			$what =~ s/(OK|ERROR)/$1(\$status)/g;
-			$output .=  $indent. "fail($text, \$res, \$ct) unless $what;\n";
+			$what =~ s/(OK|ERROR)/WWW::Chat::$1(\$status)/g;
+			$output .=  $indent. "WWW::Chat::fail($text, \$res, \$ct) unless $what;\n";
 
     		} elsif (/^(\s*)BACK(?:\s+(ALL|\d+))?\s*$/) {
 			my $indent = $1;
