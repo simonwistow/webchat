@@ -133,7 +133,7 @@ EOT
 	    			$output .=  "$indent\$form->find_input($name, $no)->value($val);\n";
 			}
 
-    		} elsif (/^(\s*)(?:CLICK|SUBMIT)(?:\s+(\w+))?(?:(\d+)\s+(\d+))?/) {
+    		} elsif (/^(\s*)(?:CLICK|SUBMIT)(?:\s+(\w+))?\s+(?:(\d+)\s+(\d+))?/) {
 			my $indent = $1;
 			my $name = $2;
 			$name = dump($name);
